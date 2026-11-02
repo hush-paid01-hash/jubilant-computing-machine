@@ -28,6 +28,8 @@ struct ContentView: View {
 private struct HomeView: View {
     @Binding var selectedTab: Int
     @Binding var notificationsEnabled: Bool
+    @State private var showingTools = false
+    @State private var showingGuide = false
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -72,8 +74,8 @@ private struct HomeView: View {
                     LazyVGrid(columns: columns, spacing: 12) {
                         HomeTile(title: "My Projects", subtitle: "Create & manage apps", symbol: "square.stack.3d.up.fill", color: .orange) { selectedTab = 1 }
                         HomeTile(title: "Components", subtitle: "Reusable UI examples", symbol: "chevron.left.forwardslash.chevron.right", color: .purple) { selectedTab = 2 }
-                        HomeTile(title: "Tools", subtitle: "Build, sign & install", symbol: "wrench.and.screwdriver.fill", color: .blue) { selectedTab = 3 }
-                        HomeTile(title: "Guide", subtitle: "Step-by-step help", symbol: "book.closed.fill", color: .green) { selectedTab = 3 }
+                        HomeTile(title: "Tools", subtitle: "Build, sign & install", symbol: "wrench.and.screwdriver.fill", color: .blue) { showingTools = true }
+                        HomeTile(title: "Guide", subtitle: "Step-by-step help", symbol: "book.closed.fill", color: .green) { showingGuide = true }
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -94,6 +96,8 @@ private struct HomeView: View {
             }
             .background(Color(uiColor: .systemBackground))
             .toolbar(.hidden, for: .navigationBar)
+            .sheet(isPresented: $showingTools) { ToolsView() }
+            .sheet(isPresented: $showingGuide) { StarterGuideView() }
         }
     }
 }
@@ -399,6 +403,61 @@ private struct ComponentsView: View {
                 }
             }
             .navigationTitle("Components")
+        }
+    }
+}
+
+
+private struct ToolsView: View {
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Build tools") {
+                    Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions")!) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("GitHub Actions")
+                                Text("Run a cloud iOS build and download the IPA").font(.caption).foregroundStyle(.secondary)
+                            }
+                        } icon: { Image(systemName: "hammer.fill").foregroundStyle(.orange) }
+                    }
+                    Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine")!) {
+                        Label("Open project repository", systemImage: "chevron.left.forwardslash.chevron.right")
+                    }
+                }
+                Section("Signing & installation") {
+                    Label("Import the unsigned IPA into ESign", systemImage: "square.and.arrow.down")
+                    Label("Choose your certificate and matching profile", systemImage: "signature")
+                    Label("Sign and install the app on this iPhone", systemImage: "checkmark.iphone")
+                }
+                Section {
+                    Text("These tools open the real GitHub project and provide the ESign workflow. Signing still happens in ESign on your device.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Tools")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+private struct StarterGuideView: View {
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Getting started") {
+                    Label("Create or select a project in My Projects", systemImage: "1.circle.fill")
+                    Label("Make source changes in the connected GitHub repository", systemImage: "2.circle.fill")
+                    Label("Run the iOS build workflow in GitHub Actions", systemImage: "3.circle.fill")
+                    Label("Download the unsigned IPA and sign it with ESign", systemImage: "4.circle.fill")
+                }
+                Section("Important") {
+                    Text("A successful cloud build confirms compilation. Always install the signed IPA and test it on your iPhone.")
+                    Text("Project entries in this starter app are stored locally; they do not automatically create GitHub repositories or Xcode targets.")
+                }
+            }
+            .navigationTitle("Getting Started")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
