@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb13b"/><stop offset=".48" stop-color="#ff6a00"/><stop offset="1" stop-color="#e83b22"/></linearGradient>
+  <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+<path d="M0 690 Q260 540 510 730 T1024 680 V1024 H0Z" fill="#d92e18" opacity=".24"/>
+<path d="M0 790 Q250 670 520 835 T1024 770 V1024 H0Z" fill="#ffca62" opacity=".28"/>
+<path d="M170 235 Q350 430 505 480 Q430 355 390 215 Q535 385 650 430 Q625 300 590 185 Q770 370 805 560 Q845 685 730 750 Q660 710 595 760 Q400 860 225 700 Q355 760 485 690 Q320 575 170 235Z" fill="#fff"/>
+<path d="M235 330 Q390 495 545 560 Q470 565 400 525 Q320 470 235 330Z" fill="#ffe6d0"/>
+<path d="M115 0 H1024 V430 Q760 260 530 330 Q280 390 0 230Z" fill="url(#shine)"/>
+</svg>
