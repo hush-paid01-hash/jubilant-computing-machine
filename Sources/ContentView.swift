@@ -169,8 +169,8 @@ private struct ProjectsView: View {
             .searchable(text: $searchText, prompt: "Search projects")
             .navigationTitle("My Projects")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { EditButton() }
-                ToolbarItem(placement: .topBarTrailing) { Button { showingAddProject = true } label: { Image(systemName: "plus.circle.fill").font(.title2).foregroundStyle(.orange) } }
+                ToolbarItem(placement: .navigationBarLeading) { EditButton() }
+                ToolbarItem(placement: .navigationBarTrailing) { Button { showingAddProject = true } label: { Image(systemName: "plus.circle.fill").font(.title2).foregroundStyle(.orange) } }
             }
             .sheet(isPresented: $showingAddProject) {
                 AddProjectView { project in projects.insert(project, at: 0); save() }
