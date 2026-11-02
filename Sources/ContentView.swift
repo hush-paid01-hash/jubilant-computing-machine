@@ -2,8 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0\n    @AppStorage("starterDarkMode") private var isDarkMode = false\n    @AppStorage("starterNotifications") private var notificationsEnabled = true
-    @State private var isDarkMode = false
-    @State private var notificationsEnabled = true
     @State private var tapCount = 0
 
     var body: some View {
@@ -18,7 +16,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Components", systemImage: "square.grid.2x2.fill")
                 }
-                .tag(1)
+                .tag(2)
 
             SettingsView(
                 isDarkMode: $isDarkMode,
@@ -27,7 +25,7 @@ struct ContentView: View {
             .tabItem {
                 Label("Settings", systemImage: "gearshape.fill")
             }
-            .tag(2)
+            .tag(3)
         }
         .tint(.orange)
         .preferredColorScheme(isDarkMode ? .dark : .light)
@@ -161,7 +159,7 @@ private struct ProjectsView: View {
                     projects.removeAll { ids.contains($0.id) }; save()
                 }
             }
-            .overlay { if filtered.isEmpty { ContentUnavailableView("No projects", systemImage: "folder", description: Text("Tap + to create your first project.")) } }
+            .overlay { if filtered.isEmpty { VStack(spacing: 10) { Image(systemName: "folder").font(.largeTitle).foregroundStyle(.secondary); Text("No projects yet").font(.headline); Text("Tap + to create your first project.").font(.subheadline).foregroundStyle(.secondary) }.padding() } }
             .searchable(text: $searchText, prompt: "Search projects")
             .navigationTitle("My Projects")
             .toolbar {
