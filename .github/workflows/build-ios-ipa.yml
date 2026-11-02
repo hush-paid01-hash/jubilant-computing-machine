@@ -48,6 +48,17 @@ jobs:
           cd build/package
           /usr/bin/zip -qry ../artifacts/IOSStarter-Unsigned.ipa Payload
 
+      - name: Verify packaged IPA
+        run: |
+          IPA="build/artifacts/IOSStarter-Unsigned.ipa"
+          test -s "$IPA"
+          unzip -t "$IPA"
+          APP_PLIST="build/package/Payload/IOSStarter.app/Info.plist"
+          test -f "$APP_PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PLIST"
+          echo "Unsigned IPA package verification passed. Device installation and signing must still be tested separately."
+
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
