@@ -30,6 +30,7 @@ private struct HomeView: View {
     @Binding var notificationsEnabled: Bool
     @State private var showingTools = false
     @State private var showingGuide = false
+    @State private var projects = StarterProject.load()
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -38,10 +39,12 @@ private struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     HStack(spacing: 10) {
-                        Image(systemName: "bird.fill")
-                            .font(.system(size: 30, weight: .bold))
-                            .foregroundStyle(.orange)
-                        Text("iOS Starter Pro")
+                        Image("StarterMark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 38, height: 38)
+                            .accessibilityLabel("iOS Starter logo")
+                        Text("iOS Starter")
                             .font(.title2.bold())
                             .foregroundStyle(.orange)
                         Spacer()
@@ -86,9 +89,24 @@ private struct HomeView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.orange)
                         }
-                        RecentProjectRow(name: "iOS Starter", detail: "Last opened today", symbol: "bird.fill", color: .orange)
-                        RecentProjectRow(name: "Hush (PS2 Emulator)", detail: "Emulator • iOS", symbol: "gamecontroller.fill", color: .purple)
-                        RecentProjectRow(name: "Sales Dashboard", detail: "Business • iOS", symbol: "square.grid.3x3.fill", color: .blue)
+                        ForEach(projects.prefix(3)) { project in
+                            NavigationLink {
+                                ProjectDetailView(project: project) { updated in
+                                    if let index = projects.firstIndex(where: { $0.id == updated.id }) {
+                                        projects[index] = updated
+                                        saveProjects()
+                                    }
+                                }
+                            } label: {
+                                RecentProjectRow(
+                                    name: project.name == "iOSStarter" ? "iOS Starter" : project.name,
+                                    detail: project.name == "iOSStarter" ? "Last opened today" : "\(project.kind) • iOS",
+                                    symbol: project.kind == "Game" ? "gamecontroller.fill" : project.kind == "Utility" ? "desktopcomputer" : "app.fill",
+                                    color: project.kind == "Game" ? .purple : project.kind == "Utility" ? .blue : .orange
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 .padding(.horizontal, 18)
@@ -98,6 +116,12 @@ private struct HomeView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingTools) { ToolsView() }
             .sheet(isPresented: $showingGuide) { StarterGuideView() }
+        }
+    }
+
+    private func saveProjects() {
+        if let data = try? JSONEncoder().encode(projects) {
+            UserDefaults.standard.set(data, forKey: "starterProjects")
         }
     }
 }
@@ -484,7 +508,7 @@ private struct SettingsView: View {
                         AppInfoView()
                     } label: {
                         Label {
-                            HStack { Text("App Name"); Spacer(); Text("iOS Starter Pro").foregroundStyle(.secondary) }
+                            HStack { Text("App Name"); Spacer(); Text("iOS Starter").foregroundStyle(.secondary) }
                         } icon: { Image(systemName: "square.grid.2x2") }
                     }
                     NavigationLink {
@@ -521,7 +545,7 @@ private struct SettingsView: View {
                     Toggle("Notifications", isOn: $notificationsEnabled).tint(.orange)
                 }
                 Section("About") {
-                    LabeledContent("About", value: "iOS Starter Pro")
+                    LabeledContent("About", value: "iOS Starter")
                     Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine")!) {
                         Label("Support & Source Code", systemImage: "heart")
                     }
@@ -535,7 +559,7 @@ private struct SettingsView: View {
 private struct AppInfoView: View {
     var body: some View {
         List {
-            Label("iOS Starter Pro", systemImage: "bird.fill").foregroundStyle(.orange)
+            Label("iOS Starter", systemImage: "bird.fill").foregroundStyle(.orange)
             LabeledContent("Bundle Identifier", value: "com.example.iosstarter")
             LabeledContent("Minimum iOS", value: "16.0")
             Text("The app icon is generated from the repository's Assets/AppIcon.svg during the cloud build.")
