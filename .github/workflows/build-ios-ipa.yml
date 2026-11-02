@@ -23,8 +23,9 @@ jobs:
 
       - name: Render app icon
         run: |
-          python3 -m pip install --user cairosvg
-          python3 -c "import cairosvg; cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/AppIcon.appiconset/AppIcon.png', output_width=1024, output_height=1024)"
+          python3 -m venv .venv
+          .venv/bin/pip install cairosvg
+          .venv/bin/python -c "import cairosvg; cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/AppIcon.appiconset/AppIcon.png', output_width=1024, output_height=1024)"
 
       - name: Generate Xcode project
         run: xcodegen generate
