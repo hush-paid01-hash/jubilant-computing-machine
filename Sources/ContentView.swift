@@ -254,11 +254,6 @@ private struct ProjectsView: View {
                             .buttonStyle(.plain)
                             Divider().padding(.leading, 68)
                         }
-                        .onDeleteCompat { offsets in
-                            let ids = offsets.map { filtered[$0].id }
-                            projects.removeAll { ids.contains($0.id) }
-                            save()
-                        }
                     }
                     .padding(.horizontal, 18)
                 }
