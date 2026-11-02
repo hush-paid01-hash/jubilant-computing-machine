@@ -25,7 +25,11 @@ jobs:
         run: |
           python3 -m venv .venv
           .venv/bin/pip install cairosvg
-          .venv/bin/python -c "import cairosvg; cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/AppIcon.appiconset/AppIcon.png', output_width=1024, output_height=1024)"
+          .venv/bin/python - <<'PY'
+          import cairosvg
+          cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/AppIcon.appiconset/AppIcon.png', output_width=1024, output_height=1024)
+          cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/StarterMark.imageset/StarterMark.png', output_width=256, output_height=256)
+          PY
 
       - name: Generate Xcode project
         run: xcodegen generate
