@@ -18,8 +18,13 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Install build tools
+        run: brew install xcodegen cairo
+
+      - name: Render app icon
+        run: |
+          python3 -m pip install --user cairosvg
+          python3 -c "import cairosvg; cairosvg.svg2png(url='Assets/AppIcon.svg', write_to='Assets.xcassets/AppIcon.appiconset/AppIcon.png', output_width=1024, output_height=1024)"
 
       - name: Generate Xcode project
         run: xcodegen generate
