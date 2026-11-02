@@ -44,8 +44,7 @@ private struct HomeView: View {
                             .font(.caption.weight(.bold))
                             .tracking(1.5)
                             .foregroundStyle(.orange)
-                        Text("Build something
-wonderful.")
+                        Text("Build something\nwonderful.")
                             .font(.largeTitle.bold())
                             .fixedSize(horizontal: false, vertical: true)
                         Text("Your SwiftUI workspace is ready. Use this starter as the foundation for your next iPhone app.")
