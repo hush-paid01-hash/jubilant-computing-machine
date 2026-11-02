@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedTab = 0\n    @AppStorage("starterDarkMode") private var isDarkMode = false\n    @AppStorage("starterNotifications") private var notificationsEnabled = true
+    @State private var selectedTab = 0
+    @AppStorage("starterDarkMode") private var isDarkMode = false
+    @AppStorage("starterNotifications") private var notificationsEnabled = true
     @State private var tapCount = 0
 
     var body: some View {
@@ -12,7 +14,11 @@ struct ContentView: View {
                 }
                 .tag(0)
 
-            ProjectsView()\n                .tabItem { Label("Projects", systemImage: "folder.fill") }\n                .tag(1)\n\n            ComponentsView(tapCount: $tapCount)
+            ProjectsView()
+                .tabItem { Label("Projects", systemImage: "folder.fill") }
+                .tag(1)
+
+            ComponentsView(tapCount: $tapCount)
                 .tabItem {
                     Label("Components", systemImage: "square.grid.2x2.fill")
                 }
@@ -223,7 +229,8 @@ private struct ProjectDetailView: View {
         }.navigationTitle(project.name).navigationBarTitleDisplayMode(.inline)
     }
 }
-\nprivate struct ComponentsView: View {
+
+private struct ComponentsView: View {
     @Binding var tapCount: Int
 
     var body: some View {
