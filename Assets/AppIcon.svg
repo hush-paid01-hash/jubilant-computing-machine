@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
 <defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb13b"/><stop offset=".48" stop-color="#ff6a00"/><stop offset="1" stop-color="#e83b22"/></linearGradient>
-  <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+ <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd36a"/><stop offset=".42" stop-color="#ff8a18"/><stop offset="1" stop-color="#e94a12"/></linearGradient>
+ <linearGradient id="dark" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#38251d"/><stop offset=".55" stop-color="#171412"/><stop offset="1" stop-color="#090909"/></linearGradient>
+ <linearGradient id="wave" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb12e"/><stop offset="1" stop-color="#e85a0a"/></linearGradient>
 </defs>
-<rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
-<path d="M0 690 Q260 540 510 730 T1024 680 V1024 H0Z" fill="#d92e18" opacity=".24"/>
-<path d="M0 790 Q250 670 520 835 T1024 770 V1024 H0Z" fill="#ffca62" opacity=".28"/>
-<path d="M170 235 Q350 430 505 480 Q430 355 390 215 Q535 385 650 430 Q625 300 590 185 Q770 370 805 560 Q845 685 730 750 Q660 710 595 760 Q400 860 225 700 Q355 760 485 690 Q320 575 170 235Z" fill="#fff"/>
-<path d="M235 330 Q390 495 545 560 Q470 565 400 525 Q320 470 235 330Z" fill="#ffe6d0"/>
-<path d="M115 0 H1024 V430 Q760 260 530 330 Q280 390 0 230Z" fill="url(#shine)"/>
+<rect x="20" y="20" width="984" height="984" rx="230" fill="url(#edge)"/>
+<rect x="48" y="48" width="928" height="928" rx="205" fill="url(#dark)" stroke="#ffbf4e" stroke-width="10"/>
+<path d="M55 760 Q280 625 500 770 T970 740 V970 H55Z" fill="#e96b0b" opacity=".75"/>
+<path d="M55 830 Q280 690 505 835 T970 805 V970 H55Z" fill="url(#wave)"/>
+<path d="M270 205 Q410 390 570 465 Q500 330 465 210 Q620 385 735 420 Q705 300 675 205 Q840 385 855 560 Q875 690 765 760 Q690 700 625 755 Q425 870 245 710 Q390 770 515 680 Q355 560 270 205Z" fill="#fff"/>
+<path d="M320 320 Q465 490 625 550 Q545 555 465 510 Q385 450 320 320Z" fill="#f7e9df"/>
+<path d="M95 65 H930 Q710 145 525 245 Q315 330 95 235Z" fill="#fff" opacity=".07"/>
 </svg>
