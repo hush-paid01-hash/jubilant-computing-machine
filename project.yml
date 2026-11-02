@@ -1,0 +1,20 @@
+name: IOSStarter
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  IOSStarter:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.iosstarter
+        PRODUCT_NAME: IOSStarter
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "iOS Starter"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
