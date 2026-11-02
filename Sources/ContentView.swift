@@ -413,20 +413,24 @@ private struct ToolsView: View {
         NavigationStack {
             List {
                 Section("Build tools") {
-                    Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions")!) {
+                    Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions/workflows/build-ios-ipa.yml")!) {
                         Label {
                             VStack(alignment: .leading, spacing: 3) {
-                                Text("GitHub Actions")
-                                Text("Run a cloud iOS build and download the IPA").font(.caption).foregroundStyle(.secondary)
+                                Text("Build iOS IPA")
+                                Text("Open the exact workflow, start a build, and check its result").font(.caption).foregroundStyle(.secondary)
                             }
                         } icon: { Image(systemName: "hammer.fill").foregroundStyle(.orange) }
+                    }
+                    Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions")!) {
+                        Label("Build history & artifacts", systemImage: "clock.arrow.circlepath")
                     }
                     Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine")!) {
                         Label("Open project repository", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 }
                 Section("Signing & installation") {
-                    Label("Import the unsigned IPA into ESign", systemImage: "square.and.arrow.down")
+                    Label("Download the IOSStarter-Unsigned-IPA artifact from a successful run", systemImage: "square.and.arrow.down")
+                    Label("Import the unsigned IPA into ESign", systemImage: "doc.badge.arrow.up")
                     Label("Choose your certificate and matching profile", systemImage: "signature")
                     Label("Sign and install the app on this iPhone", systemImage: "checkmark.iphone")
                 }
