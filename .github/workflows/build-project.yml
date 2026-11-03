@@ -103,8 +103,11 @@ jobs:
           swift test
           swift build -c release
           mkdir -p "$GITHUB_WORKSPACE/runner-artifacts"
-          tar -czf "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz" -C .build release
+          test -x .build/release/RunnerSmokeTest || { echo "::error::Release executable was not produced."; exit 1; }
+          .build/release/RunnerSmokeTest
+          tar -czf "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz" -C .build/release RunnerSmokeTest
           test -s "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz"
+          tar -tzf "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz"
 
       - name: Build iOS device app with Xcode
         if: steps.detect.outputs.kind == 'ios'
