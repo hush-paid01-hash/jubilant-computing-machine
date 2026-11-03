@@ -29,3 +29,11 @@ My Projects is a local project organizer. It saves names, project types, bundle 
 The app uses bundle identifier `com.example.iosstarter`. Your ESign provisioning profile must authorize this App ID or a matching wildcard. The workflow produces an unsigned IPA; ESign performs signing on your device.
 
 Never commit certificates, private keys, or provisioning profiles to this repository.
+## Swift editor and cloud project runner
+
+- Open **Swift Editor** in the app to edit the starter source files. Changes are saved locally on the iPhone.
+- Use the import button to bring Swift or text files in from the Files app. Use the file export button for one file or the folder button for the complete source workspace.
+- The editor is a source editor, not a local Xcode compiler. iOS apps must be compiled on a macOS runner.
+- To build a project in the cloud, first put the exported source into a public GitHub repository that contains an Xcode project/workspace with a shared scheme, or a Swift package with Package.swift.
+- Open **Actions → Universal Project Runner → Run workflow**. Enter the repository as owner/name, choose its branch or tag, and select Auto, iOS app, or Swift package. Download the resulting artifact from the completed run.
+- The runner checks out an existing public GitHub repository. It does not currently upload the editor's local draft files to GitHub automatically, create repositories, or push commits for you.
