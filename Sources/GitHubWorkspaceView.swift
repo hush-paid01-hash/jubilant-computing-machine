@@ -20,7 +20,7 @@ struct GitHubWorkspaceView: View {
             }
             .navigationTitle("GitHub")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     if model.isSignedIn {
                         Button("Sign out", role: .destructive) { model.signOut() }
                     } else {
@@ -126,7 +126,7 @@ struct GitHubWorkspaceView: View {
                 if model.repositories.isEmpty && model.isLoading {
                     ProgressView("Loading repositories…")
                 } else if model.repositories.isEmpty {
-                    ContentUnavailableView("No repositories loaded", systemImage: "folder", description: Text("Pull to refresh or check your connection."))
+                    Text("No repositories loaded. Pull to refresh or check your connection.").foregroundStyle(.secondary)
                 } else {
                     ForEach(model.repositories) { repo in
                         VStack(alignment: .leading, spacing: 5) {
