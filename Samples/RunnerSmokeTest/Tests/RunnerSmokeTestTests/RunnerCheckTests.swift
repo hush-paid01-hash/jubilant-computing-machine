@@ -1,8 +1,8 @@
 import XCTest
-@testable import RunnerSmokeTest
+@testable import RunnerSmokeTestLibrary
 
 final class RunnerCheckTests: XCTestCase {
     func testRunnerCheckStatus() {
-        XCTAssertEqual(RunnerCheck.status(), "Universal Project Runner is working")
+        XCTAssertEqual(RunnerCheck.status(), "Universal Project Runner executable is working")
     }
 }
