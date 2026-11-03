@@ -385,7 +385,11 @@ private struct GitHubRepository: Decodable, Identifiable {
     let language: String?
     let updatedAt: Date
 
-    enum CodingKeys: String, CodingKey {\n        case id, name, fullName, isPrivate = "private", htmlUrl, description, stargazersCount, language, updatedAt\n    }\n\n    var stars: Int { stargazersCount }
+    enum CodingKeys: String, CodingKey {
+        case id, name, fullName, isPrivate = "private", htmlUrl, description, stargazersCount, language, updatedAt
+    }
+
+    var stars: Int { stargazersCount }
     var descriptionText: String { description ?? "" }
 }
 
