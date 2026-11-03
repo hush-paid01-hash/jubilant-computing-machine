@@ -62,10 +62,23 @@ struct GitHubRepositoryBrowserView: View {
         isLoading = true
         defer { isLoading = false }
         do {
-            let suffix = path.isEmpty ? "" : "/" + path.split(separator: "/").map { $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }.joined(separator: "/")
-            items = try await GitHubBrowserAPI.get("https://api.github.com/repos/\(repository)/contents\(suffix)", token: token)
-                .filter { $0.type == "dir" || $0.type == "file" }
-                .sorted { ($0.type == "dir") != ($1.type == "dir") ? $0.type == "dir" : $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            var suffix = ""
+            if !path.isEmpty {
+                let encodedParts: [String] = path.split(separator: "/").map { part in
+                    let text = String(part)
+                    return text.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? text
+                }
+                suffix = "/" + encodedParts.joined(separator: "/")
+            }
+            let address = "https://api.github.com/repos/\(repository)/contents\(suffix)"
+            let fetched: [GitHubContentItem] = try await GitHubBrowserAPI.get(address, token: token)
+            let visible = fetched.filter { $0.type == "dir" || $0.type == "file" }
+            items = visible.sorted { (lhs: GitHubContentItem, rhs: GitHubContentItem) -> Bool in
+                let lhsIsDir = lhs.type == "dir"
+                let rhsIsDir = rhs.type == "dir"
+                if lhsIsDir != rhsIsDir { return lhsIsDir }
+                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+            }
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
