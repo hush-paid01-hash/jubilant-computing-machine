@@ -37,3 +37,15 @@ Never commit certificates, private keys, or provisioning profiles to this reposi
 - To build a project in the cloud, first put the exported source into a public GitHub repository that contains an Xcode project/workspace with a shared scheme, or a Swift package with Package.swift.
 - Open **Actions → Universal Project Runner → Run workflow**. Enter the repository as owner/name, choose its branch or tag, and select Auto, iOS app, or Swift package. Download the resulting artifact from the completed run.
 - The runner checks out an existing public GitHub repository. It does not currently upload the editor's local draft files to GitHub automatically, create repositories, or push commits for you.
+
+
+## In-app GitHub workspace
+
+The app now includes a dedicated GitHub tab with a prepared OAuth Device Flow sign-in screen and repository browser. To activate sign-in:
+
+1. Create a GitHub OAuth App in GitHub Developer Settings.
+2. Enable **Device Flow** for that OAuth App.
+3. Enter its Client ID in the app's GitHub tab → setup.
+4. Tap **Continue with GitHub**, open the displayed GitHub verification link, and approve the one-time code.
+
+The app requests `read:user` and `repo` access so it can show repositories you own or can access. The resulting OAuth access token is stored in the iOS Keychain, not UserDefaults or source code. Do not add an OAuth client secret or personal access token to the app. Repository browsing is the first integration milestone; editing files, commits, branches, and in-app build orchestration are subsequent features.
