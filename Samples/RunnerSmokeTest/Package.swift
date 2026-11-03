@@ -8,7 +8,11 @@ let package = Package(
         .library(name: "RunnerSmokeTestLibrary", targets: ["RunnerSmokeTestLibrary"])
     ],
     targets: [
-        .executableTarget(name: "RunnerSmokeTest", path: "Sources/RunnerSmokeTest"),
+        .executableTarget(
+            name: "RunnerSmokeTest",
+            dependencies: ["RunnerSmokeTestLibrary"],
+            path: "Sources/RunnerSmokeTest"
+        ),
         .target(name: "RunnerSmokeTestLibrary", path: "Sources/RunnerSmokeTestLibrary"),
         .testTarget(name: "RunnerSmokeTestTests", dependencies: ["RunnerSmokeTestLibrary"])
     ]
