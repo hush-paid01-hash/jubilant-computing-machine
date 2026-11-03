@@ -16,15 +16,18 @@ struct ContentView: View {
             GitHubWorkspaceView()
                 .tabItem { Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right") }
                 .tag(2)
+            TaskCenterView()
+                .tabItem { Label("Tasks", systemImage: "checklist") }
+                .tag(3)
             SwiftWorkspaceView()
                 .tabItem { Label("Editor", systemImage: "curlybraces") }
-                .tag(3)
+                .tag(4)
             ComponentsView()
                 .tabItem { Label("Components", systemImage: "square.grid.2x2.fill") }
-                .tag(4)
+                .tag(5)
             SettingsView(isDarkMode: $isDarkMode, notificationsEnabled: $notificationsEnabled)
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                .tag(5)
+                .tag(6)
         }
         .tint(.orange)
         .preferredColorScheme(isDarkMode ? .dark : .light)
