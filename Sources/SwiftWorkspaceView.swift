@@ -20,6 +20,26 @@ private struct SourceExportDocument: FileDocument {
     }
 }
 
+private struct SourceWorkspaceDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.folder] }
+    let files: [(name: String, text: String)]
+
+    init(files: [(name: String, text: String)]) { self.files = files }
+
+    init(configuration: ReadConfiguration) throws {
+        throw CocoaError(.fileReadUnsupported)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let children = Dictionary(uniqueKeysWithValues: files.map { item in
+            (item.name, FileWrapper(regularFileWithContents: Data(item.text.utf8)))
+        })
+        let root = FileWrapper(directoryWithFileWrappers: children)
+        root.preferredFilename = "iOSStarter-Source"
+        return root
+    }
+}
+
 private struct WorkspaceFile: Identifiable, Hashable {
     let id: String
     let symbol: String
@@ -33,6 +53,8 @@ struct SwiftWorkspaceView: View {
     @State private var showTools = false
     @State private var showImport = false
     @State private var showExport = false
+    @State private var showWorkspaceExport = false
+    @AppStorage("starterWorkspaceFileNames") private var savedFileNames = "ContentView.swift|App.swift|README.md"
     @State private var importMessage = "Ready"
     @State private var files = [
         WorkspaceFile(id: "ContentView.swift", symbol: "swift", starter: WorkspaceFile.defaultSource),
@@ -191,6 +213,17 @@ struct SwiftWorkspaceView: View {
                 case .failure(let error): importMessage = error.localizedDescription
                 }
             }
+            .fileExporter(
+                isPresented: $showWorkspaceExport,
+                document: SourceWorkspaceDocument(files: workspaceContents),
+                contentType: .folder,
+                defaultFilename: "iOSStarter-Source"
+            ) { result in
+                switch result {
+                case .success(let url): importMessage = "Exported workspace to " + url.lastPathComponent
+                case .failure(let error): importMessage = error.localizedDescription
+                }
+            }
             .fileImporter(isPresented: $showImport, allowedContentTypes: [.swiftSource, .plainText, .sourceCode], allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
@@ -207,6 +240,7 @@ struct SwiftWorkspaceView: View {
                             selectedFile = name
                             source = text
                             UserDefaults.standard.set(text, forKey: storageKey(name))
+                            persistFileNames()
                             importMessage = "Imported \(name)"
                         }
                     }
@@ -220,7 +254,19 @@ struct SwiftWorkspaceView: View {
                             Label("Dark Xcode-inspired source editor", systemImage: "chevron.left.forwardslash.chevron.right")
                             Label("Import Swift and text source files from Files", systemImage: "folder")
                             Label("Export the selected file to Files or another app", systemImage: "square.and.arrow.up")
+                            Label("Export all workspace files together as a folder", systemImage: "folder.badge.plus")
                             Label("Local draft persistence and line numbering", systemImage: "externaldrive")
+                        }
+                        Section("Export workspace") {
+                            Button {
+                                saveCurrent()
+                                showTools = false
+                                showWorkspaceExport = true
+                            } label: {
+                                Label("Export complete source folder", systemImage: "folder.badge.plus")
+                            }
+                            Text("Exports every saved source file together. Add that folder to a GitHub repository to use the cloud project runner.")
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Universal project build") {
                             Link("Open Universal GitHub Project Runner", destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions/workflows/build-project.yml")!)
@@ -240,7 +286,26 @@ struct SwiftWorkspaceView: View {
             }
         }
         .onAppear {
+            restoreFileList()
             source = UserDefaults.standard.string(forKey: storageKey(selectedFile)) ?? source
+        }
+    }
+
+    private var workspaceContents: [(name: String, text: String)] {
+        files.map { file in
+            (file.id, UserDefaults.standard.string(forKey: storageKey(file.id)) ?? file.starter)
+        }
+    }
+
+    private func persistFileNames() {
+        savedFileNames = files.map(\.id).joined(separator: "|")
+    }
+
+    private func restoreFileList() {
+        let names = savedFileNames.split(separator: "|").map(String.init)
+        for name in names where !files.contains(where: { $0.id == name }) {
+            let text = UserDefaults.standard.string(forKey: storageKey(name)) ?? ""
+            files.append(WorkspaceFile(id: name, symbol: name.hasSuffix(".swift") ? "swift" : "doc.text", starter: text))
         }
     }
 
