@@ -1,4 +1,24 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+private struct SourceExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.swiftSource, .plainText] }
+    let text: String
+
+    init(text: String) { self.text = text }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents,
+              let text = String(data: data, encoding: .utf8) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        self.text = text
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
+    }
+}
 
 private struct WorkspaceFile: Identifiable, Hashable {
     let id: String
@@ -12,6 +32,7 @@ struct SwiftWorkspaceView: View {
     @State private var showConsole = true
     @State private var showTools = false
     @State private var showImport = false
+    @State private var showExport = false
     @State private var importMessage = "Ready"
     @State private var files = [
         WorkspaceFile(id: "ContentView.swift", symbol: "swift", starter: WorkspaceFile.defaultSource),
@@ -34,6 +55,11 @@ struct SwiftWorkspaceView: View {
                     Spacer()
                     Button { showImport = true } label: { Image(systemName: "square.and.arrow.down").font(.title3) }
                         .accessibilityLabel("Import source file")
+                    Button {
+                        saveCurrent()
+                        showExport = true
+                    } label: { Image(systemName: "square.and.arrow.up").font(.title3) }
+                        .accessibilityLabel("Export current source file")
                     Button { showTools = true } label: { Image(systemName: "ellipsis.circle").font(.title3) }
                         .accessibilityLabel("IDE tools")
                 }
@@ -154,6 +180,17 @@ struct SwiftWorkspaceView: View {
             .background(Color(red: 0.075, green: 0.085, blue: 0.10))
             .preferredColorScheme(.dark)
             .toolbar(.hidden, for: .navigationBar)
+            .fileExporter(
+                isPresented: $showExport,
+                document: SourceExportDocument(text: source),
+                contentType: selectedFile.hasSuffix(".swift") ? .swiftSource : .plainText,
+                defaultFilename: selectedFile
+            ) { result in
+                switch result {
+                case .success(let url): importMessage = "Exported " + url.lastPathComponent
+                case .failure(let error): importMessage = error.localizedDescription
+                }
+            }
             .fileImporter(isPresented: $showImport, allowedContentTypes: [.swiftSource, .plainText, .sourceCode], allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
@@ -182,6 +219,7 @@ struct SwiftWorkspaceView: View {
                         Section("Editor") {
                             Label("Dark Xcode-inspired source editor", systemImage: "chevron.left.forwardslash.chevron.right")
                             Label("Import Swift and text source files from Files", systemImage: "folder")
+                            Label("Export the selected file to Files or another app", systemImage: "square.and.arrow.up")
                             Label("Local draft persistence and line numbering", systemImage: "externaldrive")
                         }
                         Section("Universal project build") {
@@ -190,7 +228,7 @@ struct SwiftWorkspaceView: View {
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Compiler reality") {
-                            Text("This iPhone editor cannot host Apple's macOS Xcode compiler locally or execute arbitrary iOS apps inside itself. Compilation and tests run remotely on a macOS runner through GitHub Actions. The runner supports public GitHub Xcode iOS projects and Swift packages. Imported source files remain local drafts and are not yet uploaded as a buildable project.")
+                            Text("This iPhone editor cannot host Apple's macOS Xcode compiler locally or execute arbitrary iOS apps inside itself. Compilation and tests run remotely on a macOS runner through GitHub Actions. The runner supports public GitHub Xcode iOS projects and Swift packages. Imported source files remain local drafts. Export a file to Files, then add it to a public GitHub project before running a cloud build.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Import status") { Text(importMessage).font(.footnote) }
