@@ -6,6 +6,7 @@ on:
       repository:
         description: Public GitHub repository (owner/name)
         required: true
+        default: hush-paid01-hash/jubilant-computing-machine
         type: string
       ref:
         description: Branch, tag, or commit
