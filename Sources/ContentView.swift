@@ -79,7 +79,7 @@ private struct HomeView: View {
 
                     LazyVGrid(columns: columns, spacing: 12) {
                         HomeTile(title: "My Projects", subtitle: "Create & manage apps", symbol: "square.stack.3d.up.fill", color: .orange) { selectedTab = 1 }
-                        HomeTile(title: "Components", subtitle: "Reusable UI examples", symbol: "chevron.left.forwardslash.chevron.right", color: .purple) { selectedTab = 2 }
+                        HomeTile(title: "Components", subtitle: "Reusable UI examples", symbol: "chevron.left.forwardslash.chevron.right", color: .purple) { selectedTab = 3 }
                         HomeTile(title: "Tools", subtitle: "Build, sign & install", symbol: "wrench.and.screwdriver.fill", color: .blue) { showingTools = true }
                         HomeTile(title: "Guide", subtitle: "Step-by-step help", symbol: "book.closed.fill", color: .green) { showingGuide = true }
                     }
