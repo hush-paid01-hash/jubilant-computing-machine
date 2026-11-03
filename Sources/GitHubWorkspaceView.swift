@@ -136,8 +136,8 @@ struct GitHubWorkspaceView: View {
                                 Image(systemName: repo.isPrivate ? "lock.fill" : "globe")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
-                            if !repo.description.isEmpty {
-                                Text(repo.description).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                            if let description = repo.description, !description.isEmpty {
+                                Text(description).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                             }
                             HStack(spacing: 14) {
                                 Label("\(repo.stars)", systemImage: "star")
@@ -145,7 +145,7 @@ struct GitHubWorkspaceView: View {
                                 Text("Updated \(repo.updatedAt.formatted(date: .abbreviated, time: .omitted))")
                             }
                             .font(.caption2).foregroundStyle(.secondary)
-                            Link("Open on GitHub", destination: repo.htmlURL)
+                            Link("Open on GitHub", destination: repo.htmlUrl)
                                 .font(.caption.weight(.semibold))
                         }
                         .padding(.vertical, 5)
@@ -201,7 +201,7 @@ private final class GitHubWorkspaceModel: ObservableObject {
         do {
             let user: GitHubUser = try await GitHubAPI.get("/user", token: token)
             username = user.login
-            avatarURL = URL(string: user.avatarURL)
+            avatarURL = URL(string: user.avatarUrl)
             isSignedIn = true
             await loadRepositories()
         } catch {
@@ -225,7 +225,7 @@ private final class GitHubWorkspaceModel: ObservableObject {
             let response: DeviceCodeResponse = try await GitHubAPI.send(request)
             deviceCode = response.deviceCode
             userCode = response.userCode
-            verificationURI = response.verificationURI
+            verificationURI = response.verificationUri
             authorizationTask = Task { await pollForAuthorization(clientID: clientID, response: response) }
         } catch {
             message = "Could not start GitHub authorization: \(error.localizedDescription)"
@@ -322,9 +322,9 @@ private enum GitHubAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = values.map { key, value in
-            "\(key)=\(value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value)"
-        }.joined(separator: "&").data(using: .utf8)
+        var components = URLComponents()
+        components.queryItems = values.map { URLQueryItem(name: $0.key, value: $0.value) }
+        request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
         return request
     }
 
@@ -358,7 +358,7 @@ private extension JSONDecoder {
 private struct DeviceCodeResponse: Decodable {
     let deviceCode: String
     let userCode: String
-    let verificationURI: String
+    let verificationUri: String
     let expiresIn: Int
     let interval: Int
 }
@@ -371,7 +371,7 @@ private struct DeviceTokenResponse: Decodable {
 
 private struct GitHubUser: Decodable {
     let login: String
-    let avatarURL: String
+    let avatarUrl: String
 }
 
 private struct GitHubRepository: Decodable, Identifiable {
@@ -379,13 +379,13 @@ private struct GitHubRepository: Decodable, Identifiable {
     let name: String
     let fullName: String
     let isPrivate: Bool
-    let htmlURL: URL
+    let htmlUrl: URL
     let description: String?
     let stargazersCount: Int
     let language: String?
     let updatedAt: Date
 
-    var stars: Int { stargazersCount }
+    enum CodingKeys: String, CodingKey {\n        case id, name, fullName, isPrivate = "private", htmlUrl, description, stargazersCount, language, updatedAt\n    }\n\n    var stars: Int { stargazersCount }
     var descriptionText: String { description ?? "" }
 }
 
