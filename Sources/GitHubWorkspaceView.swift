@@ -248,7 +248,7 @@ private final class GitHubWorkspaceModel: ObservableObject {
                     keychain.save(token)
                     let user: GitHubUser = try await GitHubAPI.get("/user", token: token)
                     username = user.login
-                    avatarURL = URL(string: user.avatarURL)
+                    avatarURL = URL(string: user.avatarUrl)
                     isSignedIn = true
                     deviceCode = nil
                     message = "GitHub connected successfully."
