@@ -1,0 +1,112 @@
+name: Universal iOS Project Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Public GitHub repository (owner/name)
+        required: true
+        type: string
+      ref:
+        description: Branch, tag, or commit
+        required: false
+        default: main
+        type: string
+      scheme:
+        description: Xcode scheme (leave blank to auto-detect)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios-project:
+    runs-on: macos-15
+    steps:
+      - name: Validate repository input
+        env:
+          TARGET_REPOSITORY: ${{ inputs.repository }}
+        run: |
+          if [[ ! "$TARGET_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Repository must be owner/name for a public GitHub repository."
+            exit 1
+          fi
+
+      - name: Checkout selected project
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          path: project
+
+      - name: Show Apple toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Detect Xcode project and scheme
+        id: detect
+        env:
+          REQUESTED_SCHEME: ${{ inputs.scheme }}
+        run: |
+          cd project
+          WORKSPACE=$(find . -maxdepth 4 -name '*.xcworkspace' -not -path '*/Pods/*' | head -n 1)
+          PROJECT=$(find . -maxdepth 4 -name '*.xcodeproj' -not -path '*/Pods/*' | head -n 1)
+          if [ -n "$WORKSPACE" ]; then
+            echo "container=-workspace" >> "$GITHUB_OUTPUT"
+            echo "project_path=$WORKSPACE" >> "$GITHUB_OUTPUT"
+            LIST=$(xcodebuild -list -json -workspace "$WORKSPACE")
+          elif [ -n "$PROJECT" ]; then
+            echo "container=-project" >> "$GITHUB_OUTPUT"
+            echo "project_path=$PROJECT" >> "$GITHUB_OUTPUT"
+            LIST=$(xcodebuild -list -json -project "$PROJECT")
+          else
+            echo "No .xcodeproj or .xcworkspace found. This runner currently builds Xcode iOS app projects."
+            exit 1
+          fi
+          if [ -n "$REQUESTED_SCHEME" ]; then
+            SCHEME="$REQUESTED_SCHEME"
+          else
+            SCHEME=$(printf '%s' "$LIST" | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("workspace",{}).get("schemes") or d.get("project",{}).get("schemes") or [""])[0])')
+          fi
+          if [ -z "$SCHEME" ]; then
+            echo "Could not auto-detect an Xcode scheme. Enter the scheme name in the workflow inputs."
+            exit 1
+          fi
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          echo "Using scheme: $SCHEME"
+
+      - name: Build iOS device app with Xcode
+        working-directory: project
+        env:
+          CONTAINER_FLAG: ${{ steps.detect.outputs.container }}
+          PROJECT_PATH: ${{ steps.detect.outputs.project_path }}
+          SCHEME: ${{ steps.detect.outputs.scheme }}
+        run: |
+          if [ "$CONTAINER_FLAG" = "-workspace" ]; then
+            xcodebuild -workspace "$PROJECT_PATH" -scheme "$SCHEME" -configuration Release -destination 'generic/platform=iOS' -derivedDataPath "$GITHUB_WORKSPACE/DerivedData" CODE_SIGNING_ALLOWED=NO build
+          else
+            xcodebuild -project "$PROJECT_PATH" -scheme "$SCHEME" -configuration Release -destination 'generic/platform=iOS' -derivedDataPath "$GITHUB_WORKSPACE/DerivedData" CODE_SIGNING_ALLOWED=NO build
+          fi
+
+      - name: Package unsigned IPA when an iOS app was produced
+        run: |
+          APP=$(find DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -n 1)
+          if [ -z "$APP" ]; then
+            echo "Xcode completed but did not produce an iOS .app. Check the build log and selected scheme."
+            exit 1
+          fi
+          mkdir -p package/Payload artifacts
+          cp -R "$APP" package/Payload/
+          cd package
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa" Payload
+          unzip -t "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Project-Unsigned-IPA
+          path: artifacts/Project-Unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
