@@ -43,7 +43,7 @@ struct GitHubRepositoryBrowserView: View {
                 }
                 .overlay {
                     if items.isEmpty && !isLoading {
-                        ContentUnavailableView("Empty folder", systemImage: "folder")
+                        Text("This folder is empty.").foregroundStyle(.secondary)
                     }
                 }
                 .refreshable { await load() }
