@@ -4,10 +4,12 @@ import PackageDescription
 let package = Package(
     name: "RunnerSmokeTest",
     products: [
-        .library(name: "RunnerSmokeTest", targets: ["RunnerSmokeTest"])
+        .executable(name: "RunnerSmokeTest", targets: ["RunnerSmokeTest"]),
+        .library(name: "RunnerSmokeTestLibrary", targets: ["RunnerSmokeTestLibrary"])
     ],
     targets: [
-        .target(name: "RunnerSmokeTest"),
-        .testTarget(name: "RunnerSmokeTestTests", dependencies: ["RunnerSmokeTest"])
+        .executableTarget(name: "RunnerSmokeTest", path: "Sources/RunnerSmokeTest"),
+        .target(name: "RunnerSmokeTestLibrary", path: "Sources/RunnerSmokeTestLibrary"),
+        .testTarget(name: "RunnerSmokeTestTests", dependencies: ["RunnerSmokeTestLibrary"])
     ]
 )
