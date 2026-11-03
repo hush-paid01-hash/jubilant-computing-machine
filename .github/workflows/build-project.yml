@@ -102,8 +102,9 @@ jobs:
           swift package resolve
           swift test
           swift build -c release
-          mkdir -p "$GITHUB_WORKSPACE/artifacts"
-          cp -R .build/release "$GITHUB_WORKSPACE/artifacts/swift-package-build"
+          mkdir -p "$GITHUB_WORKSPACE/runner-artifacts"
+          tar -czf "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz" -C .build release
+          test -s "$GITHUB_WORKSPACE/runner-artifacts/swift-package-build.tar.gz"
 
       - name: Build iOS device app with Xcode
         if: steps.detect.outputs.kind == 'ios'
@@ -113,6 +114,7 @@ jobs:
           PROJECT_PATH: ${{ steps.detect.outputs.project_path }}
           SCHEME: ${{ steps.detect.outputs.scheme }}
         run: |
+          mkdir -p "$GITHUB_WORKSPACE/runner-artifacts"
           if [ "$CONTAINER_FLAG" = "-workspace" ]; then
             xcodebuild -workspace "$PROJECT_PATH" -scheme "$SCHEME" -configuration Release -destination 'generic/platform=iOS' -derivedDataPath "$GITHUB_WORKSPACE/DerivedData" CODE_SIGNING_ALLOWED=NO build
           else
@@ -120,16 +122,21 @@ jobs:
           fi
           APP=$(find "$GITHUB_WORKSPACE/DerivedData/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' -type d | head -n 1)
           [ -n "$APP" ] || { echo "::error::Xcode did not produce an iOS .app."; exit 1; }
-          mkdir -p "$GITHUB_WORKSPACE/package/Payload" "$GITHUB_WORKSPACE/artifacts"
+          mkdir -p "$GITHUB_WORKSPACE/package/Payload"
           cp -R "$APP" "$GITHUB_WORKSPACE/package/Payload/"
           cd "$GITHUB_WORKSPACE/package"
-          /usr/bin/zip -qry "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa" Payload
-          unzip -t "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa"
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/runner-artifacts/Project-Unsigned.ipa" Payload
+          unzip -t "$GITHUB_WORKSPACE/runner-artifacts/Project-Unsigned.ipa"
+
+      - name: Verify runner artifact output
+        run: |
+          ls -lah "$GITHUB_WORKSPACE/runner-artifacts"
+          test -n "$(find "$GITHUB_WORKSPACE/runner-artifacts" -maxdepth 1 -type f -print -quit)"
 
       - name: Upload build output
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.detect.outputs.kind == 'ios' && 'Project-Unsigned-IPA' || 'Swift-Package-Build' }}
-          path: artifacts/
+          path: ${{ github.workspace }}/runner-artifacts/*
           if-no-files-found: error
           retention-days: 7
