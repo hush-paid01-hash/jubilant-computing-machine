@@ -153,6 +153,7 @@ struct GitHubWorkspaceView: View {
                         }
                         .padding(.vertical, 5)
                         }
+                    }
                 }
             }
             Section {
