@@ -129,6 +129,9 @@ struct GitHubWorkspaceView: View {
                     Text("No repositories loaded. Pull to refresh or check your connection.").foregroundStyle(.secondary)
                 } else {
                     ForEach(model.repositories) { repo in
+                        NavigationLink {
+                            GitHubRepositoryBrowserView(repository: repo.fullName)
+                        } label: {
                         VStack(alignment: .leading, spacing: 5) {
                             HStack {
                                 Text(repo.fullName).font(.headline)
@@ -149,7 +152,7 @@ struct GitHubWorkspaceView: View {
                                 .font(.caption.weight(.semibold))
                         }
                         .padding(.vertical, 5)
-                    }
+                        }
                 }
             }
             Section {
