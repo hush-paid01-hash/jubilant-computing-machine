@@ -50,7 +50,7 @@ struct GitHubFileEditorView: View {
         .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 if !isLoading {
                     Button("Reload") { Task { await load() } }.disabled(isSaving)
                 }
@@ -92,9 +92,10 @@ struct GitHubFileEditorView: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            try await GitHubEditorAPI.commit(repository: repository, path: item.path, token: token,
-                                             sha: fileSHA, text: source,
-                                             message: commitMessage.trimmingCharacters(in: .whitespacesAndNewlines))
+            let newSHA = try await GitHubEditorAPI.commit(repository: repository, path: item.path, token: token,
+                                                     sha: fileSHA, text: source,
+                                                     message: commitMessage.trimmingCharacters(in: .whitespacesAndNewlines))
+            self.fileSHA = newSHA
             originalSource = source
             isError = false
             notice = "Your changes were committed to the current GitHub branch."
@@ -144,7 +145,7 @@ private enum GitHubEditorAPI {
         return try JSONDecoder().decode(GitHubEditorContent.self, from: data)
     }
 
-    static func commit(repository: String, path: String, token: String, sha: String, text: String, message: String) async throws {
+    static func commit(repository: String, path: String, token: String, sha: String, text: String, message: String) async throws -> String {
         let url = try endpoint(repository: repository, path: path)
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -159,7 +160,8 @@ private enum GitHubEditorAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         try validate(response, data: data)
         let result = try JSONDecoder().decode(GitHubEditorCommitResponse.self, from: data)
-        if let newSHA = result.content?.sha { _ = newSHA }
+        guard let newSHA = result.content?.sha else { throw GitHubEditorError.requestFailed }
+        return newSHA
     }
 
     private static func authorize(_ request: inout URLRequest, token: String) {
