@@ -5,10 +5,11 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build iOS app for simulator
+    name: Build iOS app and unsigned device IPA
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -24,3 +25,36 @@ jobs:
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Archive for generic iOS device (unsigned)
+        run: |
+          xcodebuild -project IOSStarter.xcodeproj \
+            -scheme IOSStarter \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/IOSStarter.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH="$RUNNER_TEMP/IOSStarter.xcarchive/Products/Applications/IOSStarter.app"
+          test -d "$APP_PATH"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/IOSStarter.app"
+          cd "$RUNNER_TEMP/ipa"
+          /usr/bin/zip -qry "$RUNNER_TEMP/IOSStarter-unsigned.ipa" Payload
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: IOSStarter-unsigned-IPA
+          path: ${{ runner.temp }}/IOSStarter-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Xcode archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: IOSStarter-xcarchive
+          path: ${{ runner.temp }}/IOSStarter.xcarchive
+          if-no-files-found: error
+          retention-days: 14
