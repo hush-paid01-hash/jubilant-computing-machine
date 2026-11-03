@@ -1,4 +1,4 @@
-name: Universal iOS Project Runner
+name: Universal Project Runner
 
 on:
   workflow_dispatch:
@@ -13,15 +13,24 @@ on:
         default: main
         type: string
       scheme:
-        description: Xcode scheme (leave blank to auto-detect)
+        description: Xcode scheme (optional; auto-detected when blank)
         required: false
         type: string
+      action:
+        description: Build an iOS app or build/test a Swift package
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - ios
+          - swift-package
 
 permissions:
   contents: read
 
 jobs:
-  build-ios-project:
+  run-project:
     runs-on: macos-15
     steps:
       - name: Validate repository input
@@ -29,7 +38,7 @@ jobs:
           TARGET_REPOSITORY: ${{ inputs.repository }}
         run: |
           if [[ ! "$TARGET_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
-            echo "Repository must be owner/name for a public GitHub repository."
+            echo "::error::Repository must be owner/name for a public GitHub repository."
             exit 1
           fi
 
@@ -45,39 +54,58 @@ jobs:
           xcodebuild -version
           swift --version
 
-      - name: Detect Xcode project and scheme
+      - name: Detect project type
         id: detect
         env:
-          REQUESTED_SCHEME: ${{ inputs.scheme }}
+          REQUESTED_ACTION: ${{ inputs.action }}
         run: |
           cd project
-          WORKSPACE=$(find . -maxdepth 4 -name '*.xcworkspace' -not -path '*/Pods/*' | head -n 1)
-          PROJECT=$(find . -maxdepth 4 -name '*.xcodeproj' -not -path '*/Pods/*' | head -n 1)
-          if [ -n "$WORKSPACE" ]; then
-            echo "container=-workspace" >> "$GITHUB_OUTPUT"
-            echo "project_path=$WORKSPACE" >> "$GITHUB_OUTPUT"
-            LIST=$(xcodebuild -list -json -workspace "$WORKSPACE")
-          elif [ -n "$PROJECT" ]; then
-            echo "container=-project" >> "$GITHUB_OUTPUT"
-            echo "project_path=$PROJECT" >> "$GITHUB_OUTPUT"
-            LIST=$(xcodebuild -list -json -project "$PROJECT")
+          WORKSPACE=$(find . -maxdepth 5 -name '*.xcworkspace' -not -path '*/Pods/*' | head -n 1)
+          PROJECT=$(find . -maxdepth 5 -name '*.xcodeproj' -not -path '*/Pods/*' | head -n 1)
+          PACKAGE=$(find . -maxdepth 5 -name 'Package.swift' -not -path '*/.build/*' | head -n 1)
+
+          if [ "$REQUESTED_ACTION" = "swift-package" ]; then
+            [ -n "$PACKAGE" ] || { echo "::error::No Package.swift found."; exit 1; }
+            echo "kind=package" >> "$GITHUB_OUTPUT"
+            echo "package_path=$(dirname "$PACKAGE")" >> "$GITHUB_OUTPUT"
+          elif [ "$REQUESTED_ACTION" = "ios" ] || [ -n "$WORKSPACE" ] || [ -n "$PROJECT" ]; then
+            [ -n "$WORKSPACE" ] || [ -n "$PROJECT" ] || { echo "::error::No Xcode project/workspace found for iOS build."; exit 1; }
+            if [ -n "$WORKSPACE" ]; then
+              echo "container=-workspace" >> "$GITHUB_OUTPUT"
+              echo "project_path=$WORKSPACE" >> "$GITHUB_OUTPUT"
+              LIST=$(xcodebuild -list -json -workspace "$WORKSPACE")
+            else
+              echo "container=-project" >> "$GITHUB_OUTPUT"
+              echo "project_path=$PROJECT" >> "$GITHUB_OUTPUT"
+              LIST=$(xcodebuild -list -json -project "$PROJECT")
+            fi
+            SCHEME="${{ inputs.scheme }}"
+            if [ -z "$SCHEME" ]; then
+              SCHEME=$(printf '%s' "$LIST" | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("workspace",{}).get("schemes") or d.get("project",{}).get("schemes") or [""])[0])')
+            fi
+            [ -n "$SCHEME" ] || { echo "::error::No scheme found. Enter an Xcode scheme."; exit 1; }
+            echo "kind=ios" >> "$GITHUB_OUTPUT"
+            echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          elif [ -n "$PACKAGE" ]; then
+            echo "kind=package" >> "$GITHUB_OUTPUT"
+            echo "package_path=$(dirname "$PACKAGE")" >> "$GITHUB_OUTPUT"
           else
-            echo "No .xcodeproj or .xcworkspace found. This runner currently builds Xcode iOS app projects."
+            echo "::error::No supported Xcode project or Swift package found."
             exit 1
           fi
-          if [ -n "$REQUESTED_SCHEME" ]; then
-            SCHEME="$REQUESTED_SCHEME"
-          else
-            SCHEME=$(printf '%s' "$LIST" | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("workspace",{}).get("schemes") or d.get("project",{}).get("schemes") or [""])[0])')
-          fi
-          if [ -z "$SCHEME" ]; then
-            echo "Could not auto-detect an Xcode scheme. Enter the scheme name in the workflow inputs."
-            exit 1
-          fi
-          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
-          echo "Using scheme: $SCHEME"
+
+      - name: Build and test Swift package
+        if: steps.detect.outputs.kind == 'package'
+        working-directory: project/${{ steps.detect.outputs.package_path }}
+        run: |
+          swift package resolve
+          swift test
+          swift build -c release
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          cp -R .build/release "$GITHUB_WORKSPACE/artifacts/swift-package-build"
 
       - name: Build iOS device app with Xcode
+        if: steps.detect.outputs.kind == 'ios'
         working-directory: project
         env:
           CONTAINER_FLAG: ${{ steps.detect.outputs.container }}
@@ -89,24 +117,18 @@ jobs:
           else
             xcodebuild -project "$PROJECT_PATH" -scheme "$SCHEME" -configuration Release -destination 'generic/platform=iOS' -derivedDataPath "$GITHUB_WORKSPACE/DerivedData" CODE_SIGNING_ALLOWED=NO build
           fi
-
-      - name: Package unsigned IPA when an iOS app was produced
-        run: |
-          APP=$(find DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -n 1)
-          if [ -z "$APP" ]; then
-            echo "Xcode completed but did not produce an iOS .app. Check the build log and selected scheme."
-            exit 1
-          fi
-          mkdir -p package/Payload artifacts
-          cp -R "$APP" package/Payload/
-          cd package
+          APP=$(find "$GITHUB_WORKSPACE/DerivedData/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' -type d | head -n 1)
+          [ -n "$APP" ] || { echo "::error::Xcode did not produce an iOS .app."; exit 1; }
+          mkdir -p "$GITHUB_WORKSPACE/package/Payload" "$GITHUB_WORKSPACE/artifacts"
+          cp -R "$APP" "$GITHUB_WORKSPACE/package/Payload/"
+          cd "$GITHUB_WORKSPACE/package"
           /usr/bin/zip -qry "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa" Payload
           unzip -t "$GITHUB_WORKSPACE/artifacts/Project-Unsigned.ipa"
 
-      - name: Upload unsigned IPA
+      - name: Upload build output
         uses: actions/upload-artifact@v4
         with:
-          name: Project-Unsigned-IPA
-          path: artifacts/Project-Unsigned.ipa
+          name: ${{ steps.detect.outputs.kind == 'ios' && 'Project-Unsigned-IPA' || 'Swift-Package-Build' }}
+          path: artifacts/
           if-no-files-found: error
           retention-days: 7
