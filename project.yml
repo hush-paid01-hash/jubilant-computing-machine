@@ -20,3 +20,6 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: "iOS Starter"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+
+        MARKETING_VERSION: "3.0.0"
+        CURRENT_PROJECT_VERSION: "3"
