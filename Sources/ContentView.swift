@@ -13,12 +13,15 @@ struct ContentView: View {
             ProjectsView()
                 .tabItem { Label("Projects", systemImage: "square.layers.3d") }
                 .tag(1)
+            SwiftWorkspaceView()
+                .tabItem { Label("Xcode", systemImage: "chevron.left.forwardslash.chevron.right") }
+                .tag(2)
             ComponentsView()
                 .tabItem { Label("Components", systemImage: "square.grid.2x2.fill") }
-                .tag(2)
+                .tag(3)
             SettingsView(isDarkMode: $isDarkMode, notificationsEnabled: $notificationsEnabled)
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                .tag(3)
+                .tag(4)
         }
         .tint(.orange)
         .preferredColorScheme(isDarkMode ? .dark : .light)
@@ -517,7 +520,7 @@ private struct SettingsView: View {
                         Label("App Icon", systemImage: "photo")
                     }
                     LabeledContent("Bundle Identifier", value: "com.example.iosstarter")
-                    LabeledContent("Version", value: "1.1.0")
+                    LabeledContent("Version", value: "3.0.0")
                 }
                 Section("Build & Install") {
                     NavigationLink {
