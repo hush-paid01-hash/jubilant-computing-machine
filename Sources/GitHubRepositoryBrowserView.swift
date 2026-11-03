@@ -19,7 +19,7 @@ struct GitHubRepositoryBrowserView: View {
             if isLoading && items.isEmpty {
                 ProgressView("Loading files…")
             } else if let errorMessage, items.isEmpty {
-                ContentUnavailableView("Could not load repository", systemImage: "exclamationmark.triangle", description: Text(errorMessage))
+                VStack(spacing: 8) { Image(systemName: "exclamationmark.triangle"); Text("Could not load repository"); Text(errorMessage).font(.footnote).foregroundStyle(.secondary) }.padding()
             } else {
                 List(items) { item in
                     if item.type == "dir" {
@@ -85,7 +85,7 @@ private struct GitHubFilePreviewView: View {
             if loading {
                 ProgressView("Loading file…")
             } else if let errorMessage {
-                ContentUnavailableView("Unable to display file", systemImage: "doc.questionmark", description: Text(errorMessage))
+                VStack(spacing: 8) { Image(systemName: "doc.questionmark"); Text("Unable to display file"); Text(errorMessage).font(.footnote).foregroundStyle(.secondary) }.padding()
             } else {
                 ScrollView([.horizontal, .vertical]) {
                     Text(text)
