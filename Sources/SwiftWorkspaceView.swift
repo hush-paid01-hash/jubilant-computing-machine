@@ -27,7 +27,7 @@ private struct SourceWorkspaceDocument: FileDocument {
     init(files: [(name: String, text: String)]) { self.files = files }
 
     init(configuration: ReadConfiguration) throws {
-        throw CocoaError(.fileReadUnsupported)
+        throw CocoaError(.fileReadCorruptFile)
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
