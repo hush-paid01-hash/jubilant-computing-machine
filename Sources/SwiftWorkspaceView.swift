@@ -134,7 +134,7 @@ struct SwiftWorkspaceView: View {
                             Circle().fill(.green).frame(width: 6, height: 6)
                             Text("CLOUD TOOLCHAIN").font(.system(size: 9, design: .monospaced)).foregroundStyle(.green)
                         }
-                        Text("Apple Swift compiler + Xcode run on a macOS cloud runner. Import a GitHub project and start a device build from the universal runner.")
+                        Text("Apple Swift and Xcode run on a macOS cloud runner. Build iOS apps as unsigned IPAs, or build and test Swift packages remotely.")
                             .font(.system(size: 10)).foregroundStyle(.gray).fixedSize(horizontal: false, vertical: true)
                         Link(destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions/workflows/build-project.yml")!) {
                             HStack {
@@ -186,11 +186,11 @@ struct SwiftWorkspaceView: View {
                         }
                         Section("Universal project build") {
                             Link("Open Universal GitHub Project Runner", destination: URL(string: "https://github.com/hush-paid01-hash/jubilant-computing-machine/actions/workflows/build-project.yml")!)
-                            Text("Enter a public GitHub repository, branch, and Xcode scheme in the workflow form. It builds an iOS app on a real macOS/Xcode runner and publishes an unsigned IPA when the project supports device builds.")
+                            Text("Enter a public GitHub repository and branch. Choose Auto, iOS app, or Swift package. Xcode projects build for a generic iOS device and publish an unsigned IPA; Swift packages run swift test and a Release build, then publish the build output.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Compiler reality") {
-                            Text("This iPhone editor cannot host Apple's macOS Xcode compiler locally or execute arbitrary iOS apps inside itself. Compilation happens remotely on Apple's Xcode toolchain through GitHub Actions. Imported source files are saved in this app; the universal runner currently checks out GitHub repositories, not files imported into this editor.")
+                            Text("This iPhone editor cannot host Apple's macOS Xcode compiler locally or execute arbitrary iOS apps inside itself. Compilation and tests run remotely on a macOS runner through GitHub Actions. The runner supports public GitHub Xcode iOS projects and Swift packages. Imported source files remain local drafts and are not yet uploaded as a buildable project.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Import status") { Text(importMessage).font(.footnote) }
