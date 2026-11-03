@@ -13,15 +13,18 @@ struct ContentView: View {
             ProjectsView()
                 .tabItem { Label("Projects", systemImage: "square.layers.3d") }
                 .tag(1)
-            SwiftWorkspaceView()
-                .tabItem { Label("Xcode", systemImage: "chevron.left.forwardslash.chevron.right") }
+            GitHubWorkspaceView()
+                .tabItem { Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right") }
                 .tag(2)
+            SwiftWorkspaceView()
+                .tabItem { Label("Editor", systemImage: "curlybraces") }
+                .tag(3)
             ComponentsView()
                 .tabItem { Label("Components", systemImage: "square.grid.2x2.fill") }
-                .tag(3)
+                .tag(4)
             SettingsView(isDarkMode: $isDarkMode, notificationsEnabled: $notificationsEnabled)
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                .tag(4)
+                .tag(5)
         }
         .tint(.orange)
         .preferredColorScheme(isDarkMode ? .dark : .light)
