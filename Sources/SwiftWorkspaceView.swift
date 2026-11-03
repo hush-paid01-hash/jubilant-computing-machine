@@ -82,6 +82,11 @@ struct SwiftWorkspaceView: View {
                         showExport = true
                     } label: { Image(systemName: "square.and.arrow.up").font(.title3) }
                         .accessibilityLabel("Export current source file")
+                    Button {
+                        saveCurrent()
+                        showWorkspaceExport = true
+                    } label: { Image(systemName: "folder.badge.plus").font(.title3) }
+                        .accessibilityLabel("Export complete source workspace")
                     Button { showTools = true } label: { Image(systemName: "ellipsis.circle").font(.title3) }
                         .accessibilityLabel("IDE tools")
                 }
@@ -258,14 +263,7 @@ struct SwiftWorkspaceView: View {
                             Label("Local draft persistence and line numbering", systemImage: "externaldrive")
                         }
                         Section("Export workspace") {
-                            Button {
-                                saveCurrent()
-                                showTools = false
-                                showWorkspaceExport = true
-                            } label: {
-                                Label("Export complete source folder", systemImage: "folder.badge.plus")
-                            }
-                            Text("Exports every saved source file together. Add that folder to a GitHub repository to use the cloud project runner.")
+                            Text("Use the folder button in the editor toolbar to export every saved source file together. Add that folder to a GitHub repository to use the cloud project runner.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         Section("Universal project build") {
