@@ -82,7 +82,12 @@ struct TaskCenterView: View {
                 }
 
                 if visibleTasks.isEmpty {
-                    ContentUnavailableView("No tasks found", systemImage: "checklist", description: Text("Add a task or change your search."))
+                    VStack(spacing: 10) {
+                        Image(systemName: "checklist").font(.largeTitle).foregroundStyle(.secondary)
+                        Text("No tasks found").font(.headline)
+                        Text("Add a task or change your search.").font(.caption).foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(visibleTasks) { task in
