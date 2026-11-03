@@ -1,0 +1,61 @@
+name: Package Complete Xcode Project
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Generate and package complete Xcode project
+    runs-on: macos-15
+    steps:
+      - name: Check out complete source
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate native Xcode project
+        run: |
+          xcodegen generate
+          test -d IOSStarter.xcodeproj
+          test -f IOSStarter.xcodeproj/project.pbxproj
+          xcodebuild -list -project IOSStarter.xcodeproj
+
+      - name: Verify project can build for iOS Simulator
+        run: |
+          xcodebuild \
+            -project IOSStarter.xcodeproj \
+            -scheme IOSStarter \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
+
+      - name: Assemble complete project package
+        run: |
+          mkdir -p build/package/IOSStarter
+          cp -R Sources Assets.xcassets Assets project.yml README.md UNIVERSAL-RUNNER.md .github build/package/IOSStarter/
+          cp -R IOSStarter.xcodeproj build/package/IOSStarter/
+          cat > build/package/IOSStarter/OPEN-IN-XCODE.txt <<'EOF'
+          Open IOSStarter.xcodeproj in Xcode on a Mac.
+          Select the IOSStarter scheme and an iPhone simulator or connected iPhone.
+          Set your own unique Bundle Identifier under Signing & Capabilities.
+          A physical-device installation still requires a valid Apple signing identity and provisioning.
+          The project source is complete; this package does not include signing certificates or profiles.
+          EOF
+          cd build/package
+          /usr/bin/zip -qry ../IOSStarter-Complete-Xcode-Project.zip IOSStarter
+          unzip -t ../IOSStarter-Complete-Xcode-Project.zip
+          test -s ../IOSStarter-Complete-Xcode-Project.zip
+
+      - name: Upload complete Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: IOSStarter-Complete-Xcode-Project
+          path: build/IOSStarter-Complete-Xcode-Project.zip
+          if-no-files-found: error
+          retention-days: 30
