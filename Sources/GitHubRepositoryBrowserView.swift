@@ -30,7 +30,7 @@ struct GitHubRepositoryBrowserView: View {
                         }
                     } else {
                         NavigationLink {
-                            GitHubFilePreviewView(repository: repository, item: item)
+                            GitHubFileEditorView(repository: repository, item: GitHubEditableFile(name: item.name, path: item.path))
                         } label: {
                             HStack {
                                 Label(item.name, systemImage: item.isTextFile ? "doc.text" : "doc")
